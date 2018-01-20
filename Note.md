@@ -4,7 +4,9 @@
 
 [TOC]
 
+## 包添加到环境变量
 
+参考：http://blog.csdn.net/haluoluo211/article/details/54313631
 
 ## pycharm tutorial
 
@@ -288,32 +290,156 @@ Pid: 28118 LoopCount: 3
 
 1.容易理解的版本：http://python.jobbole.com/82344/
 
-
-
 装饰模式有很多经典的使用场景，例如插入日志、性能测试、事务处理等等，有了装饰器，就可以提取大量函数中与本身功能无关的类似代码，从而达到代码重用的目的。下面就一步步看看Python中的装饰器。
 
-一个简单的需求
+#### 一个简单的需求
+
+#### A.step1
+
+现在有一个简单的函数”myfunc”，想通过代码得到这个函数的大概执行时间。我们可以直接把计时逻辑方法”myfunc”内部，但是这样的话，如果要给另一个函数计时，就需要重复计时的逻辑。所以比较好的做法是把计时逻辑放到另一个函数中（”deco”），如下：
+
+~~~python
+import time
+def deco(func):
+    startTime=time.time()
+    func()
+    endTime=time.time()
+    msecs=(endTime-startTime)*1000.
+    print "->eclipsed time: %f ms"% msecs
+def myfunc():
+    print "start myfunc"
+    time.sleep(0.6)
+    print "end myfunc"
+deco(myfunc)
+myfunc()
+~~~
+
+~~~shell
+# output
+start myfunc
+end myfunc
+->eclipsed time: 600.643873 ms
+start myfunc
+end myfunc
+~~~
+
+但是这样有两个问题：
+
+1.所有的”myfunc”调用处都要改为”deco(myfunc)”。
+
+2.myfunc的参数要传进去，返回值返回来，有点麻烦。
+
+#### step2
+
+既然不能直接调用原始函数，那么我构造一个能够直接调用原始函数的形式不就行了吗？一个办法就是，返回包装过之后的函数。不过这种形式只是换了个名字而已。
+
+```python
+import time
+def deco(func):
+    def wrapper():
+        startTime=time.time()
+    	func()
+    	endTime=time.time()
+    	msecs=(endTime-startTime)*1000.
+    	print "->eclipsed time: %f ms"% msecs
+    return wrapper
+def myfunc():
+    print "start myfunc"
+    time.sleep(0.6)
+    print "end myfunc"
+print "myfunc is : ",myfunc.__name__
+myfunc=deco(myfunc)
+print "myfunc is ：",myfunc.__name__
+myfunc()
+```
+输出结果：
+
+~~~shell
+myfunc is :  myfunc
+myfunc is :  wrapper
+start myfunc
+end myfunc
+->eclipsed time: 600.696802 ms
+~~~
 
 
+
+经过了上面的改动后，一个比较完整的装饰器（deco）就实现了，装饰器没有影响原来的函数，以及函数调用的代码。例子中值得注意的地方是，Python中一切都是对象，函数也是，所以代码中改变了”myfunc”对应的函数对象。
+
+#### step3 装饰器语法糖
+
+在Python中，可以使用”@”语法糖来精简装饰器的代码：
+
+~~~python
+#codint=utf-8
+import time
+
+def deco(func):
+    def wrapper():
+        startTime = time.time()
+        func()
+        endTime = time.time()
+        msecs = (endTime - startTime) * 1000.
+        print "->eclipsed time: %f ms" % msecs
+
+    return wrapper
+@deco
+def myfunc():
+    print "start myfunc"
+    time.sleep(0.6)
+    print "end myfunc"
+
+print "myfunc is : ", myfunc.__name__
+myfunc()
+
+~~~
+
+输出结果
+
+~~~shell
+myfunc is :  wrapper
+start myfunc
+end myfunc
+->eclipsed time: 600.741863 ms
+~~~
+
+使用了”@”语法糖后，我们就不需要额外代码来给”myfunc”重新赋值了，其实”@deco”的本质就是”myfunc = deco(myfunc)”，当认清了这一点后，后面看带参数的装饰器就简单了。
+
+#### 被装饰的函数带参数
+
+前面的例子中，被装饰函数的本身是没有参数的，下面看一个被装饰函数有参数的例子：
+
+~~~python
+def deco(func):
+    def wrapper(a,b):
+        startTime = time.time()
+        func(a,b)
+        endTime = time.time()
+        msecs = (endTime - startTime) * 1000.
+        print "->eclipsed time: %f ms" % msecs
+
+    return wrapper
+@deco
+def myfunc(a,b):
+    print "start myfunc"
+    time.sleep(0.6)
+    print "result is: %d"%(a+b)
+    print "end myfunc"
+
+myfunc(3,4)
+~~~
+
+从例子中可以看到，对于被装饰函数需要支持参数的情况，我们只要使装饰器的内嵌函数支持同样的签名即可。
+
+**也就是说这时，”addFunc(3, 8) = deco(addFunc(3, 8))”。**这句话表述错误！
+
+这里还有一个问题，如果多个函数拥有不同的参数形式，怎么共用同样的装饰器？在Python中，函数可以支持(*args, **kwargs)可变参数，所以装饰器可以通过可变参数形式来实现内嵌函数的签名。
 
 自己写的代码
 
 ~~~python
-import time
-def deco1(func):
-    begin=time.time()
-    func()
-    end=time.time()
-    print "Time eclipsed:",end-begin
 
-def deco2(func):
-    def wrapper(*args,**kwargs):
-        begin=time.time()
-        #!
-        func(*args,**kwargs)
-        end=time.time()
-        print "Time eclipsed:", end - begin
-    return wrapper
+
 
 def deco3(flag):
     if flag:
@@ -502,4 +628,20 @@ with Session() as sess:
 #进入主体之后,执行一些操作,操作之后会调用__exit__方法,这个方法可以关闭文件,清理资源等操作,也可以将错误信息传递到__exit__方法之中.
 ~~~
 
-参考链接:http://www.cnblogs.com/lipijin/p/4460487.html
+参考链接: http://www.cnblogs.com/lipijin/p/4460487.html
+
+
+
+## 安装opencv
+
+安装的命令很简单:
+
+- opencv2:
+
+conda install --channel https://conda.anaconda.org/menpo opencv
+
+- opencv3:
+
+conda install --channel https://conda.anaconda.org/menpo opencv3
+
+参考链接: https://www.cnblogs.com/YangQiaoblog/p/6739847.html
