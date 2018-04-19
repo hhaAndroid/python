@@ -4,9 +4,129 @@
 
 [TOC]
 
+## jupyter notebook使用
+
+**打开jupyter notebook**
+
+~~~python
+jupyter notebook
+~~~
+
+会自动在网页打开这个jupyter notebook。
+
+**修改jupyter notebook的默认打开路径**
+
+首先运行如下命令。
+
+```
+jupyter notebook --generate-config
+```
+
+就可以查看到.jupyter的路径。
+
+进入.jupyter文件夹中，打开jupyter_notebook_config.py文件
+
+进行如下修改
+
+~~~python
+c.NotebookApp.notebook_dir=u'想要默认打开的路径'
+~~~
+
+**使用细节**
+
+请参考：[Jupyter Notebook 快速入门](http://www.cnblogs.com/nxld/p/6566380.html)
+
+## Conda使用
+
+以下都以tensorflow1.4作为虚拟环境的名字
+
+1.创建一个conda虚拟环境
+
+~~~shell
+conda create --name tensorflow1.4 python=2.7
+~~~
+
+2.激活这个tensorflow1.4虚拟环境
+
+~~~shell
+source activate tensorflow1.4
+~~~
+
+3.关闭这个虚拟环境
+
+~~~shell
+conda deactivate tensorflow1.4
+~~~
+
+4.彻底移除这个虚拟环境
+
+~~~shell
+conda remove --name tensorflow1.4 --all
+~~~
+
+5.查看虚拟环境里面已经安装的包（需要进入到这个虚拟环境中再使用这个命令）
+
+~~~shell
+conda list
+~~~
+
+如果不进入这个虚拟环境，但是想看某个虚拟环境所安装的包
+
+~~~shell
+conda list -n tensorflow1.4
+~~~
+
+6.安装包
+
+也是有两种方式，一种进入虚拟环境，一种是在外部
+
+不进入虚拟环境的情况下，安装numpy包
+
+~~~shell
+conda install -n tensorflow1.4 numpy
+~~~
+
+进入虚拟环境的情况下，则
+
+~~~shell
+conda install numpy
+~~~
+
+7.移除包
+
+同样包括进入虚拟环境和没有进入虚拟环境，原理同6，这里就不一一列出
+
+~~~shell
+conda remove -n tensorflow1.4 numpy
+~~~
+
+8.安装anaconda中包的集合
+
+~~~shell
+conda install anaconda
+~~~
+
+
+
 ## 包添加到环境变量
 
-参考：http://blog.csdn.net/haluoluo211/article/details/54313631
+直接在代码中加包的搜索路径：
+
+~~~python
+import sys
+sys.path.append("path/to/lib/")
+import lib
+~~~
+
+## pycharm专业版的远程调用
+
+目前用的专业版本是：pycharm-2017.3.1
+
+专业版激活：https://jetlicense.nss.im/
+
+https://www.imsxm.com/jetbrains-license-server.html
+
+插件安装方法：https://jingyan.baidu.com/article/a378c960daf80eb328283033.html
 
 ## pycharm tutorial
 
@@ -288,6 +408,18 @@ Pid: 28118 LoopCount: 3
 
 ## 装饰器
 
+#### 总结
+
+装饰器本质上就是一个函数f，它吃进来的是一个函数f，吐出来的是添加完功能之后的函数。
+
+可以分为两步：
+
+1.用一个wrapper对这个函数f进行包装，添加一定的功能。
+
+2.用一个deco返回这个wrapper。函数的参数由wrapper给。deco的参数就是函数f。
+
+
+
 1.容易理解的版本：http://python.jobbole.com/82344/
 
 装饰模式有很多经典的使用场景，例如插入日志、性能测试、事务处理等等，有了装饰器，就可以提取大量函数中与本身功能无关的类似代码，从而达到代码重用的目的。下面就一步步看看Python中的装饰器。
@@ -327,7 +459,7 @@ end myfunc
 
 1.所有的”myfunc”调用处都要改为”deco(myfunc)”。
 
-2.myfunc的参数要传进去，返回值返回来，有点麻烦。
+2.myfunc的参数要传进去，返回值返回来，有点麻烦。实际上这是一种叫做callback的方法。
 
 #### step2
 
@@ -391,7 +523,6 @@ def myfunc():
 
 print "myfunc is : ", myfunc.__name__
 myfunc()
-
 ~~~
 
 输出结果
@@ -645,3 +776,9 @@ conda install --channel https://conda.anaconda.org/menpo opencv
 conda install --channel https://conda.anaconda.org/menpo opencv3
 
 参考链接: https://www.cnblogs.com/YangQiaoblog/p/6739847.html
+
+
+
+## 解决一直出现登录的问题
+
+https://mensfeld.pl/2014/09/ubuntu-14-04-gnome-keyring-seahorse-auto-unlock-when-auto-login/
